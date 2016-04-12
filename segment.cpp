@@ -22,7 +22,51 @@ int main(int argc, char** argv)
 	// Display original image
 	namedWindow("Original Image", WINDOW_AUTOSIZE);
 	imshow("Original Image", imOrig);
-    waitKey(0);
+	waitKey(0);
+
+
+
+	// TODO: break out into a function:
+	////////////////////////////////////////////
+	// Apply segmentation through thresholding
+
+	// TODO: Which color space is best?
+	// convert to LAB ?
+	Mat imThreshLAB = imOrig.clone();
+//    cvtColor(imOrig, imThreshLAB, CV_RGB2Lab);
+//    imshow("LAB image", imThreshLAB);
+//    waitKey(0);
+
+
+	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2Lab);
+//	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2YCrCb);
+//	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2HSV);
+
+	// 
+	Vec3b *modPixel;
+	for( int i = 0; i < imThreshLAB.rows; i++ ) {
+		for( int j = 0; j < imThreshLAB.cols; j++ ) {
+
+			modPixel = & imThreshLAB.at<Vec3b>(i, j);
+
+			for( int c = 0; c < imThreshLAB.channels(); c++ ) {
+				if (modPixel->val[c] <= 128) {
+					modPixel->val[c] = 64;
+				} else {
+					modPixel->val[c] = 192;
+				}
+			}
+		}
+	}
+	cvtColor(imThreshLAB, imThreshLAB, CV_Lab2RGB);
+//	cvtColor(imThreshLAB, imThreshLAB, CV_YCrCb2RGB);
+//	cvtColor(imThreshLAB, imThreshLAB, CV_HSV2RGB);
+	namedWindow("Threshold Image", WINDOW_AUTOSIZE);
+	imshow("Threshold Image", imThreshLAB);
+	waitKey(0);
+
+
+	//
 
 
 
@@ -30,9 +74,14 @@ int main(int argc, char** argv)
 
 
 
-    // Say 'no' to Seg Faults!
-    destroyAllWindows();
 
-	printf("\n--Done.--\n");
+
+
+	// Say 'no' to Seg Faults!
+//	destroyWindow("Original Image");
+//	destroyWindow("Thresh Image");
+	destroyAllWindows();
+
+	printf("\n--Done.--\n\n");
 	return 0;
 }
