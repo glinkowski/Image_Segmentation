@@ -66,7 +66,24 @@ int main(int argc, char** argv)
 	waitKey(0);
 
 
-	//
+
+
+	////////////////////////////////////////////
+	// Apply segmentation through k-means
+
+	// choose k, error
+	// create array to hold labels
+	// create array to hold centroids
+	// arrays to hold cent. sums & counts
+	//	to calculate average at the end
+	// randomly choose k centroids
+	// while error above XX
+		// for each pixel
+			// measure dist, label each pixel
+			// increment appropriate centroid count
+			// add to the centroid sum
+			// track highest error
+	// calculate new centroids
 
 
 
