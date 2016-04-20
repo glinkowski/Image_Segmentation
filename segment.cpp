@@ -92,14 +92,15 @@ int main(int argc, char** argv)
 	// error = 
 
 	Mat imKMeans = imOrig.clone();
+	cvtColor(imKMeans, imKMeans, CV_RGB2Lab);
 
-	uint8_t K = 8;
+	uint8_t K = 9;
 	uint8_t dimensions = 3;	// either 3 or 5
 	uint8_t stopError = 5;
-	uint8_t stopCount = 10;
+	uint8_t stopCount = 11;
 
 	// Create the array to hold K centroids
-	uint8_t cLen = K * dimensions;
+//	uint8_t cLen = K * dimensions;
 
 /*	int ** centroids;
 	centroids = malloc(K * sizeof(int*));
@@ -109,8 +110,10 @@ int main(int argc, char** argv)
 */
 //	int centroids[8][3];
 
-	char * centroids;
-	centroids = (char *) malloc( cLen * sizeof(char) );
+	uint8_t * centroids;
+//	centroids = (char *) malloc( K * 3 * sizeof(char) );
+	centroids = (uint8_t *) malloc( K * dimensions * sizeof(uint8_t));
+//	centroids = (unsigned char *) malloc( cLen * sizeof(unsigned char) );
 //	char * centColor;
 //	centColor = (char *) malloc( K * 3 * sizeof(char) );
 	float * centSum;
@@ -146,6 +149,16 @@ int main(int argc, char** argv)
 		}
 	}
 
+// REMOVE: print the centroids
+	for (uint8_t i = 0; i < K; i++) {
+		printf("centroid %d: ", i);
+		for (uint8_t j = 0; j < dimensions; j++) {
+			idx = j + (i * dimensions);
+			printf(" %d ", centroids[idx]);
+		}
+		printf("\n");
+	}
+
 
 // TODO : access as pointer, not .at
 // http://stackoverflow.com/questions/1844736/accesing-a-matrix-element-in-the-mat-object-not-the-cvmat-object-in-opencv-c
@@ -153,12 +166,22 @@ int main(int argc, char** argv)
 	// perform the K-means 
 	float error = stopError + 1;
 	uint8_t runs = 0;
-	float dist, newDist;
+	uint8_t label = 0;
+	float distToBeat, newDist;
 //	uint8_t winner;
 	Vec3b * getPixel;
 //	int tempX, tempY;
 	while ((error > stopError) & (runs < stopCount)) {
 		printf("Run: %d\n", runs);
+
+		// TODO: clear centSum, centCount
+		for (uint8_t i = 0; i < K; i++) {
+			for (uint8_t j = 0; j < dimensions; j++) {
+				idx = j + (i * dimensions);
+				centSum[idx] = 0;
+				centCount[i] = 0;
+			}
+		}
 
 		for (int x = 0; x < width; x++){
 			for (int y = 0; y < height; y++){
@@ -167,8 +190,9 @@ int main(int argc, char** argv)
 //				printf("got pixel\n");
 
 				// measure (squared) dist to first centroid
-				dist = 16581375;
+				distToBeat = 16581375;
 
+				// Determine which centroid is closest to this pixel
 				for (uint8_t i = 0; i < K; i++) {
 					// calculate the squared dist
 					newDist = 0;
@@ -178,60 +202,117 @@ int main(int argc, char** argv)
 							(getPixel->val[j] - centroids[idx]);
 					}
 //					printf("newDist: %f\n", newDist);
-					if (dimensions == 5) {
-						newDist += (x - centroids[idx + 1]) * (x - centroids[idx + 1]);
-						newDist += (y - centroids[idx + 2]) * (y - centroids[idx + 2]);
-					}
+					// if (dimensions == 5) {
+					// 	newDist += (x - centroids[idx + 1]) * (x - centroids[idx + 1]);
+					// 	newDist += (y - centroids[idx + 2]) * (y - centroids[idx + 2]);
+					// }
 					// test this dist against winner
 					// save the label of the winning centroid
-					if (newDist < dist) {
-						dist = newDist;
-//						printf("newDist wins, label: %d\n", i);
+					if (newDist < distToBeat) {
+						distToBeat = newDist;
+//						printf("newDist wins, label: %d, newDist: %f\n", i, newDist);
 						// TODO: doesn't like this line?
 						pixLabels.at<uint8_t>(y, x) = i;
 //						pixLabels.at<unsigned char>(y, x) = i;
 //						printf("got here\n");
 					}
 				}
+
+				// Update the centroid values (1: sum of members)
+				label = pixLabels.at<uint8_t>(y, x);
+				for (uint8_t j = 0; j < dimensions; j++) {
+					idx = j + (label * dimensions);
+					centSum[idx] += getPixel->val[j];
+				}
+				centCount[label] += 1;
+
+		// 	/*	if (dimensions == 5) {
+		// 			// TODO: normalize x/y over 255?
+		// 			centSum[idx + 1] += x;
+		// 			centSum[idx + 2] += y;
+		// 		}*/
 				// done with this pixel
 			}
 		}
 		runs++;
-	}
 
-	printf("Found the K centroids\n");
-
-	// Calculate average values for each K
-	for (int x = 0; x < width; x++){
-		for (int y = 0; y < height; y++){
-
-			getPixel = & imKMeans.at<Vec3b>(y, x);
-
-			// which label is this pixel?
-			int i = pixLabels.at<uint8_t>(y, x);
-
-			// calculate average (first: sum)
-			for (int j = 0; j < 3; j ++) {
+		// Update centroid values
+		for (uint8_t i = 0; i < K; i++) {
+			for (uint8_t j = 0; j < dimensions; j++) {
 				idx = j + (i * dimensions);
-				centSum[idx] += getPixel->val[j];
+				centroids[idx] = (uint8_t) (centSum[idx] / centCount[i]);
 			}
-		/*	if (dimensions == 5) {
-				// TODO: normalize x/y over 255?
-				centSum[idx + 1] += x;
-				centSum[idx + 2] += y;
-			}*/
-			// done with this pixel
 		}
-	}
-	// calculate average (second: divide)
-	for (int i = 0; i < K; i++) {
-		for (int j = 0; j < 3; j++) {
-			idx = j + (i * dimensions);
-			centSum[idx] = centSum[idx] / centCount[i];
+
+	// REMOVE: print the centroids
+		for (uint8_t i = 0; i < K; i++) {
+			printf("centroid %d: ", i);
+			for (uint8_t j = 0; j < dimensions; j++) {
+				idx = j + (i * dimensions);
+				printf(" %d ", centroids[idx]);
+			}
+			printf("\n");
 		}
+
 	}
+
+	printf("Found the K=%d centroids\n", K);
+
+	// // Calculate average values for each K
+	// for (int x = 0; x < width; x++){
+	// 	for (int y = 0; y < height; y++){
+
+	// 		getPixel = & imKMeans.at<Vec3b>(y, x);
+
+	// 		// which label is this pixel?
+	// 		int i = pixLabels.at<uint8_t>(y, x);
+
+	// 		// calculate average (first: sum)
+	// 		for (int j = 0; j < 3; j ++) {
+	// 			idx = j + (i * dimensions);
+	// 			centSum[idx] += getPixel->val[j];
+	// 		}
+	// 	/*	if (dimensions == 5) {
+	// 			// TODO: normalize x/y over 255?
+	// 			centSum[idx + 1] += x;
+	// 			centSum[idx + 2] += y;
+	// 		}*/
+	// 		// done with this pixel
+	// 	}
+	// }
+
+	// // REMOVE: print the current values
+	// for (int i = 0; i < K; i++) {
+	// 	printf("%f\n", centCount[i]);
+	// 	for (int j = 0; j < dimensions; j++) {
+	// 		idx = j + (i * dimensions);
+
+	// 		printf(" %f ", centSum[idx]);
+
+	// 	}
+	// 	printf("\n");
+	// }
+
+	// // calculate average (second: divide)
+	// for (int i = 0; i < K; i++) {
+	// 	for (int j = 0; j < 3; j++) {
+	// 		idx = j + (i * dimensions);
+	// 		centSum[idx] = centSum[idx] / centCount[i];
+	// 	}
+	// }
 
 	// TODO: output values from centSum, centCount
+
+
+// REMOVE: print the centroids
+	for (uint8_t i = 0; i < K; i++) {
+		printf("centroid %d: ", i);
+		for (uint8_t j = 0; j < dimensions; j++) {
+			idx = j + (i * dimensions);
+			printf(" %d ", centroids[idx]);
+		}
+		printf("\n");
+	}
 
 	printf("Calculated average values\n");
 
@@ -248,13 +329,19 @@ int main(int argc, char** argv)
 
 			for (int j = 0; j < 3; j++) {
 				idx = j + (thisLabel * dimensions);
-				getPixel->val[j] = centSum[idx];
+
+//				getPixel->val[j] = 64;
+				getPixel->val[j] = centroids[idx];
 			}
 			// done with this pixel
+
+
 		}
 	}
 
 	printf("Painted the output image\n");
+
+	cvtColor(imKMeans, imKMeans, CV_Lab2RGB);
 
 	namedWindow("KMeans Image", WINDOW_AUTOSIZE);
 	imshow("KMeans Image", imKMeans);
