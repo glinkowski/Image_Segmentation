@@ -44,12 +44,12 @@ int main(int argc, char** argv)
 
 	// 
 	Vec3b * modPixel;
-	for( int i = 0; i < imThreshLAB.rows; i++ ) {
-		for( int j = 0; j < imThreshLAB.cols; j++ ) {
+	for ( int i = 0; i < imThreshLAB.rows; i++ ) {
+		for ( int j = 0; j < imThreshLAB.cols; j++ ) {
 
 			modPixel = & imThreshLAB.at<Vec3b>(i, j);
 
-			for( int c = 0; c < imThreshLAB.channels(); c++ ) {
+			for ( int c = 0; c < imThreshLAB.channels(); c++ ) {
 				if (modPixel->val[c] <= 128) {
 					modPixel->val[c] = 64;
 				} else {
@@ -91,6 +91,8 @@ int main(int argc, char** argv)
 	// dimensions: 3 colors (+ 2 directions?)
 	// error = 
 
+	Mat imKMeans = imOrig.clone();
+
 	uint8_t K = 8;
 	uint8_t dimensions = 3;	// either 3 or 5
 	uint8_t stopError = 5;
@@ -101,7 +103,7 @@ int main(int argc, char** argv)
 
 /*	int ** centroids;
 	centroids = malloc(K * sizeof(int*));
-	for(int i = 0; i < K; i++) {
+	for (int i = 0; i < K; i++) {
 		centroids[i] = malloc(dimensions * sizeof(int));
 	}
 */
@@ -112,9 +114,10 @@ int main(int argc, char** argv)
 //	char * centColor;
 //	centColor = (char *) malloc( K * 3 * sizeof(char) );
 	float * centSum;
-	centSum = (float *) malloc( K * 3 * sizeof(float) );
+//	centSum = (float *) calloc( K * dimensions * sizeof(float) );
+	centSum = (float *) calloc( K * 3, sizeof(float) );
 	float * centCount;
-	centCount = (float *) malloc( K * 3 * sizeof(float) );
+	centCount = (float *) calloc( K, sizeof(float) );
 //	float * centDist;
 //	centDist = (float *) malloc( K * sizeof(float) );
 
@@ -122,17 +125,17 @@ int main(int argc, char** argv)
 //	printf("%d\n", centroids[8]);
 
 	// the array to hold pixel labels
-	Mat pixLabels(imOrig.rows, imOrig.cols, CV_8UC1, 0);
+	Mat pixLabels(imKMeans.rows, imKMeans.cols, CV_8UC1, 0);
 
 	// get dimensions
-//	Mat imKMeans = imOrig.clone();
-	int height = imOrig.rows;
-	int width = imOrig.cols;
+//	Mat imKMeans = imKMeans.clone();
+	int height = imKMeans.rows;
+	int width = imKMeans.cols;
 
 	// Select K random centroids
 	uint8_t idx;
-	for(uint8_t i = 0; i < K; i++) {
-		for(uint8_t j = 0; j < dimensions; j++) {
+	for (uint8_t i = 0; i < K; i++) {
+		for (uint8_t j = 0; j < dimensions; j++) {
 
 			idx = (i * dimensions) + j;
 			centroids[idx] = rand() % 255;
@@ -146,22 +149,22 @@ int main(int argc, char** argv)
 	float error = stopError + 1;
 	uint8_t runs = 0;
 	float dist, newDist;
-	uint8_t winner;
+//	uint8_t winner;
 	Vec3b * getPixel;
 //	int tempX, tempY;
 	while ((error > stopError) & (runs < stopCount)) {
-		for(int x = 0; x < width; x++){
-			for(int y = 0; y < height; y++){
+		for (int x = 0; x < width; x++){
+			for (int y = 0; y < height; y++){
 
-				getPixel = & imOrig.at<Vec3b>(y, x);
+				getPixel = & imKMeans.at<Vec3b>(y, x);
 
 				// measure (squared) dist to first centroid
 				dist = 16581375;
 
-				for(int i = 0; i < K; i++) {
+				for (int i = 0; i < K; i++) {
 					// calculate the squared dist
 					newDist = 0;
-					for(int j = 0; j < 3; j ++) {
+					for (int j = 0; j < 3; j ++) {
 						idx = j + (i * dimensions);
 						newDist += (getPixel->val[j] - centroids[idx]) *
 							(getPixel->val[j] - centroids[idx]);
@@ -183,9 +186,65 @@ int main(int argc, char** argv)
 		runs++;
 	}
 
-//TODO: calculate avg values for K (up to dimension 3)
+	printf("Found the K centroids\n");
 
+	// Calculate average values for each K
+	for (int x = 0; x < width; x++){
+		for (int y = 0; y < height; y++){
 
+			getPixel = & imKMeans.at<Vec3b>(y, x);
+
+			// which label is this pixel?
+			int i = pixLabels.at<uint8_t>(y, x);
+
+			// calculate average (first: sum)
+			for (int j = 0; j < 3; j ++) {
+				idx = j + (i * dimensions);
+				centSum[idx] += getPixel->val[j];
+			}
+		/*	if (dimensions == 5) {
+				// TODO: normalize x/y over 255?
+				centSum[idx + 1] += x;
+				centSum[idx + 2] += y;
+			}*/
+			// done with this pixel
+		}
+	}
+	// calculate average (second: divide)
+	for (int i = 0; i < K; i++) {
+		for (int j = 0; j < 3; j++) {
+			idx = j + (i * dimensions);
+			centSum[idx] = centSum[idx] / centCount[i];
+		}
+	}
+
+	printf("Calculated average values\n");
+
+	// Fnally: Place the new pixel value into the image
+	uint8_t thisLabel;
+	for (int x = 0; x < width; x++){
+		for (int y = 0; y < height; y++){
+
+			// Read the label for this pixel
+			thisLabel = pixLabels.at<uint8_t>(y, x);
+
+			// Place the new value
+			getPixel = & imKMeans.at<Vec3b>(y, x);
+
+			for (int i = 0; i < K; i++) {
+				for (int j = 0; j < 3; j ++) {
+					idx = j + (i * dimensions);
+					getPixel->val[j] = centSum[idx];
+				}
+			}
+			// done with this pixel
+		}
+	}
+
+	printf("Painted the output image\n");
+
+	namedWindow("KMeans Image", WINDOW_AUTOSIZE);
+	imshow("KMeans Image", imKMeans);
 
 
 //TODO: free stuff
@@ -200,6 +259,7 @@ int main(int argc, char** argv)
 	// Say 'no' to Seg Faults!
 	destroyWindow("Original Image");
 	destroyWindow("Threshold Image");
+	destroyWindow("KMeans Image");
 //	destroyAllWindows();
 
 	printf("\n--Done.--\n\n");
