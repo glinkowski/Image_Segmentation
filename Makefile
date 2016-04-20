@@ -1,8 +1,10 @@
 OBJS1 = test.cpp
 OBJS2 = segment.h segment.cpp
+OBJS3 = segment.h segThresh.cpp
 
 EXE1 = test.exe
 EXE2 = segment.exe
+EXE3 = segThresh.exe
 
 CC = g++
 
@@ -17,11 +19,16 @@ segment: $(OBJS2)
 	$(CC) $(OCVFLAGS) $(EXE2) $(OBJS2) $(OCVLIBS)
 #	$(CC) $(OCV) $(OBJS) $(FLAGS) $(EXE)
 
+thresh: $(OBJS3)
+	$(CC) $(OCVFLAGS) $(EXE3) $(OBJS3) $(OCVLIBS)
+
 basic: $(OBJS1)
 	$(CC) $(OCVFLAGS) $(EXE1) $(OBJS1) $(OCVLIBS)
 
-all:  $(OBJS2) $(OBJS1)
+# TODO: fix 'all'
+all:  $(OBJS2)
 	$(CC) $(OCVFLAGS) $(EXE2) $(OBJS2) $(OCVLIBS)
+	  $(OBJS1)
 	$(CC) $(OCVFLAGS) $(EXE1) $(OBJS1) $(OCVLIBS)
 
 # TODO:
