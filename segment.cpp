@@ -231,6 +231,8 @@ int main(int argc, char** argv)
 		}
 	}
 
+	// TODO: output values from centSum, centCount
+
 	printf("Calculated average values\n");
 
 	// Fnally: Place the new pixel value into the image
@@ -244,11 +246,9 @@ int main(int argc, char** argv)
 			// Place the new value
 			getPixel = & imKMeans.at<Vec3b>(y, x);
 
-			for (int i = 0; i < K; i++) {
-				for (int j = 0; j < 3; j ++) {
-					idx = j + (i * dimensions);
-					getPixel->val[j] = centSum[idx];
-				}
+			for (int j = 0; j < 3; j++) {
+				idx = j + (thisLabel * dimensions);
+				getPixel->val[j] = centSum[idx];
 			}
 			// done with this pixel
 		}
@@ -258,6 +258,7 @@ int main(int argc, char** argv)
 
 	namedWindow("KMeans Image", WINDOW_AUTOSIZE);
 	imshow("KMeans Image", imKMeans);
+	waitKey(0);
 
 
 //TODO: free stuff
