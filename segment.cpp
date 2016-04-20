@@ -125,7 +125,9 @@ int main(int argc, char** argv)
 //	printf("%d\n", centroids[8]);
 
 	// the array to hold pixel labels
-	Mat pixLabels(imKMeans.rows, imKMeans.cols, CV_8UC1, 0);
+//	Mat pixLabels(imKMeans.rows, imKMeans.cols, CV_8UC1, 0);
+	Mat pixLabels;
+	pixLabels = Mat::zeros(imKMeans.rows, imKMeans.cols, CV_8UC1);
 
 	// get dimensions
 //	Mat imKMeans = imKMeans.clone();
@@ -145,6 +147,9 @@ int main(int argc, char** argv)
 	}
 
 
+// TODO : access as pointer, not .at
+// http://stackoverflow.com/questions/1844736/accesing-a-matrix-element-in-the-mat-object-not-the-cvmat-object-in-opencv-c
+
 	// perform the K-means 
 	float error = stopError + 1;
 	uint8_t runs = 0;
@@ -153,22 +158,26 @@ int main(int argc, char** argv)
 	Vec3b * getPixel;
 //	int tempX, tempY;
 	while ((error > stopError) & (runs < stopCount)) {
+		printf("Run: %d\n", runs);
+
 		for (int x = 0; x < width; x++){
 			for (int y = 0; y < height; y++){
 
 				getPixel = & imKMeans.at<Vec3b>(y, x);
+//				printf("got pixel\n");
 
 				// measure (squared) dist to first centroid
 				dist = 16581375;
 
-				for (int i = 0; i < K; i++) {
+				for (uint8_t i = 0; i < K; i++) {
 					// calculate the squared dist
 					newDist = 0;
-					for (int j = 0; j < 3; j ++) {
+					for (uint8_t j = 0; j < 3; j ++) {
 						idx = j + (i * dimensions);
 						newDist += (getPixel->val[j] - centroids[idx]) *
 							(getPixel->val[j] - centroids[idx]);
 					}
+//					printf("newDist: %f\n", newDist);
 					if (dimensions == 5) {
 						newDist += (x - centroids[idx + 1]) * (x - centroids[idx + 1]);
 						newDist += (y - centroids[idx + 2]) * (y - centroids[idx + 2]);
@@ -177,7 +186,11 @@ int main(int argc, char** argv)
 					// save the label of the winning centroid
 					if (newDist < dist) {
 						dist = newDist;
+//						printf("newDist wins, label: %d\n", i);
+						// TODO: doesn't like this line?
 						pixLabels.at<uint8_t>(y, x) = i;
+//						pixLabels.at<unsigned char>(y, x) = i;
+//						printf("got here\n");
 					}
 				}
 				// done with this pixel
