@@ -19,6 +19,11 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+	// downsize large images
+	if ((imOrig.rows > 720) | (imOrig.cols > 1280)) {
+		resize(imOrig, imOrig, Size(640, 480), 0, 0, INTER_AREA);
+	}
+
 	// Display original image
 	namedWindow("Original Image", WINDOW_AUTOSIZE);
 	imshow("Original Image", imOrig);
@@ -92,12 +97,12 @@ int main(int argc, char** argv)
 	// error = 
 
 	Mat imKMeans = imOrig.clone();
-	cvtColor(imKMeans, imKMeans, CV_RGB2Lab);
+//	cvtColor(imKMeans, imKMeans, CV_RGB2Lab);
 
 	uint8_t K = 9;
 	uint8_t dimensions = 3;	// either 3 or 5
 	uint8_t stopError = 5;
-	uint8_t stopCount = 11;
+	uint8_t stopCount = 9;
 
 	// Create the array to hold K centroids
 //	uint8_t cLen = K * dimensions;
@@ -174,7 +179,9 @@ int main(int argc, char** argv)
 	while ((error > stopError) & (runs < stopCount)) {
 		printf("Run: %d\n", runs);
 
-		// TODO: clear centSum, centCount
+		// TODO: calc stopError
+
+		// Clear centSum, centCount
 		for (uint8_t i = 0; i < K; i++) {
 			for (uint8_t j = 0; j < dimensions; j++) {
 				idx = j + (i * dimensions);
@@ -341,7 +348,7 @@ int main(int argc, char** argv)
 
 	printf("Painted the output image\n");
 
-	cvtColor(imKMeans, imKMeans, CV_Lab2RGB);
+//	cvtColor(imKMeans, imKMeans, CV_Lab2RGB);
 
 	namedWindow("KMeans Image", WINDOW_AUTOSIZE);
 	imshow("KMeans Image", imKMeans);
