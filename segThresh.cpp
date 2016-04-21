@@ -1,3 +1,21 @@
+/* ///////////////////////////////
+ *
+ *	author: Greg Linkowski
+ *	
+ *	Goal: apply segmentation through basic thresholding
+ *
+ *	Description:
+ *	Treat color space as 3-dimensional. Divide into 8
+ *	equal-sized segments (divide with an orthogonal
+ *	planes at each midpoint, ie: (:,128,:) for values
+ *	ranging from 0 to 255). If a pixel falls within
+ *	a region (ex: (20, 30, 205)), paint it with that
+ *	region's mean (ex: (64, 64, 192)).
+ *
+ */ //////////////////////////////
+
+
+
 #include "segment.h"
 
 int main(int argc, char** argv) 
@@ -34,7 +52,7 @@ int main(int argc, char** argv)
 
 // TODO: break out into a function:
 	////////////////////////////////////////////
-	// Apply segmentation through thresholding
+	// Apply segmentation
 
 // TODO: Which color space is best?
 	// convert to LAB ?
@@ -44,9 +62,9 @@ int main(int argc, char** argv)
 //    waitKey(0);
 
 
-	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2Lab);
+//	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2Lab);
 //	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2YCrCb);
-//	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2HSV);
+	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2HSV);
 
 	// 
 	Vec3b * modPixel;
@@ -64,9 +82,9 @@ int main(int argc, char** argv)
 			}
 		}
 	}
-	cvtColor(imThreshLAB, imThreshLAB, CV_Lab2RGB);
+//	cvtColor(imThreshLAB, imThreshLAB, CV_Lab2RGB);
 //	cvtColor(imThreshLAB, imThreshLAB, CV_YCrCb2RGB);
-//	cvtColor(imThreshLAB, imThreshLAB, CV_HSV2RGB);
+	cvtColor(imThreshLAB, imThreshLAB, CV_HSV2RGB);
 	namedWindow("Threshold Image", WINDOW_AUTOSIZE);
 	imshow("Threshold Image", imThreshLAB);
 	waitKey(0);
@@ -74,9 +92,9 @@ int main(int argc, char** argv)
 
 
 	// Say 'no' to Seg Faults!
-	destroyWindow("Original Image");
-	destroyWindow("Threshold Image");
-//	destroyAllWindows();
+//	destroyWindow("Original Image");
+//	destroyWindow("Threshold Image");
+	destroyAllWindows();
 
 
 	printf("\n--Done.--\n\n");
