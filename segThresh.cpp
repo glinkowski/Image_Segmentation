@@ -43,6 +43,13 @@ int main(int argc, char** argv)
 
 
 	////////////////////////////////////////////
+	// Downsize extra-large images
+	if ((imOrig.rows > 720) | (imOrig.cols > 1280)) {
+		resize(imOrig, imOrig, Size(640, 480), 0, 0, INTER_AREA);
+	}
+
+
+	////////////////////////////////////////////
 	// Display original image
 	namedWindow("Original Image", WINDOW_AUTOSIZE);
 	imshow("Original Image", imOrig);
