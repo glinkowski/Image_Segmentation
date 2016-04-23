@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 
 
 
-	// TODO: break out into a function:
+/*	// TODO: break out into a function:
 	////////////////////////////////////////////
 	// Apply segmentation through thresholding
 
@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 	namedWindow("Threshold Image", WINDOW_AUTOSIZE);
 	imshow("Threshold Image", imThreshLAB);
 	waitKey(0);
-
+*/
 
 
 
@@ -97,12 +97,12 @@ int main(int argc, char** argv)
 	// error = 
 
 	Mat imKMeans = imOrig.clone();
-//	cvtColor(imKMeans, imKMeans, CV_RGB2Lab);
+	cvtColor(imKMeans, imKMeans, CV_RGB2Lab);
 
-	uint8_t K = 9;
+	uint8_t K = 8;
 	uint8_t dimensions = 3;	// either 3 or 5
 	uint8_t stopError = 5;
-	uint8_t stopCount = 9;
+	uint8_t stopCount = 11;
 
 	// Create the array to hold K centroids
 //	uint8_t cLen = K * dimensions;
@@ -115,9 +115,11 @@ int main(int argc, char** argv)
 */
 //	int centroids[8][3];
 
-	uint8_t * centroids;
+	uint8_t * centroids, * centPrev;
 //	centroids = (char *) malloc( K * 3 * sizeof(char) );
 	centroids = (uint8_t *) malloc( K * dimensions * sizeof(uint8_t));
+	centPrev = (uint8_t *) malloc( K * dimensions * sizeof(uint8_t));
+
 //	centroids = (unsigned char *) malloc( cLen * sizeof(unsigned char) );
 //	char * centColor;
 //	centColor = (char *) malloc( K * 3 * sizeof(char) );
@@ -169,13 +171,20 @@ int main(int argc, char** argv)
 // http://stackoverflow.com/questions/1844736/accesing-a-matrix-element-in-the-mat-object-not-the-cvmat-object-in-opencv-c
 
 	// perform the K-means 
-	float error = stopError + 1;
+	uint8_t error = stopError + 1;
+	uint8_t tempErr;
 	uint8_t runs = 0;
 	uint8_t label = 0;
 	float distToBeat, newDist;
+	float xScale, yScale;
+	uint8_t xNew, yNew;
 //	uint8_t winner;
 	Vec3b * getPixel;
 //	int tempX, tempY;
+
+	xScale = 255 / width;
+	yScale = 255 / height;
+
 	while ((error > stopError) & (runs < stopCount)) {
 		printf("Run: %d\n", runs);
 
@@ -209,10 +218,14 @@ int main(int argc, char** argv)
 							(getPixel->val[j] - centroids[idx]);
 					}
 //					printf("newDist: %f\n", newDist);
-					// if (dimensions == 5) {
-					// 	newDist += (x - centroids[idx + 1]) * (x - centroids[idx + 1]);
-					// 	newDist += (y - centroids[idx + 2]) * (y - centroids[idx + 2]);
-					// }
+					if (dimensions == 5) {
+						xNew = x * xScale;
+						yNew = y * yScale;
+						newDist += (xNew - centroids[idx + 1]) *
+							(xNew - centroids[idx + 1]);
+						newDist += (yNew - centroids[idx + 2]) *
+							(yNew - centroids[idx + 2]);
+					}
 					// test this dist against winner
 					// save the label of the winning centroid
 					if (newDist < distToBeat) {
@@ -227,9 +240,15 @@ int main(int argc, char** argv)
 
 				// Update the centroid values (1: sum of members)
 				label = pixLabels.at<uint8_t>(y, x);
-				for (uint8_t j = 0; j < dimensions; j++) {
+				for (uint8_t j = 0; j < 3; j++) {
 					idx = j + (label * dimensions);
 					centSum[idx] += getPixel->val[j];
+				}
+				if (dimensions == 5) {
+					xNew = x * xScale;
+					centSum[idx + 1] = xNew;
+					yNew = y * yScale;
+					centSum[idx + 2] = yNew;
 				}
 				centCount[label] += 1;
 
@@ -238,10 +257,23 @@ int main(int argc, char** argv)
 		// 			centSum[idx + 1] += x;
 		// 			centSum[idx + 2] += y;
 		// 		}*/
+
 				// done with this pixel
 			}
 		}
 		runs++;
+
+		// REMOVE: print the centroids
+		for (uint8_t i = 0; i < K; i++) {
+			printf("centroid %d: ", i);
+			for (uint8_t j = 0; j < dimensions; j++) {
+				idx = j + (i * dimensions);
+				printf("\t%d ", centroids[idx]);
+			}
+			printf("\n");
+		}
+
+		// TODO: combine these loops ...
 
 		// Update centroid values
 		for (uint8_t i = 0; i < K; i++) {
@@ -251,14 +283,19 @@ int main(int argc, char** argv)
 			}
 		}
 
-	// REMOVE: print the centroids
-		for (uint8_t i = 0; i < K; i++) {
-			printf("centroid %d: ", i);
-			for (uint8_t j = 0; j < dimensions; j++) {
-				idx = j + (i * dimensions);
-				printf(" %d ", centroids[idx]);
-			}
-			printf("\n");
+		// Calculate the error (simple)
+		error = 0;
+		for (uint8_t i = 0; i < (K * dimensions); i++) {
+			// get error magnitude on only this dimension
+			tempErr = centroids[i] - centPrev[i];
+			if (tempErr < 0)
+				tempErr = tempErr * -1;
+			// save as new error if larger than prev
+			if (tempErr > error)
+				error = tempErr;
+
+			// Save centroids for the next round
+			centPrev[i] = centroids[i];
 		}
 
 	}
@@ -348,7 +385,7 @@ int main(int argc, char** argv)
 
 	printf("Painted the output image\n");
 
-//	cvtColor(imKMeans, imKMeans, CV_Lab2RGB);
+	cvtColor(imKMeans, imKMeans, CV_Lab2RGB);
 
 	namedWindow("KMeans Image", WINDOW_AUTOSIZE);
 	imshow("KMeans Image", imKMeans);
@@ -357,6 +394,7 @@ int main(int argc, char** argv)
 
 //TODO: free stuff
 	free (centroids);
+	free (centPrev);
 	free (centSum);
 	free (centCount);
 
