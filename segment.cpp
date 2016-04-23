@@ -31,45 +31,19 @@ int main(int argc, char** argv)
 
 
 
-/*	// TODO: break out into a function:
-	////////////////////////////////////////////
-	// Apply segmentation through thresholding
-
-	// TODO: Which color space is best?
-	// convert to LAB ?
-	Mat imThreshLAB = imOrig.clone();
-//    cvtColor(imOrig, imThreshLAB, CV_RGB2Lab);
-//    imshow("LAB image", imThreshLAB);
-//    waitKey(0);
+// TODO: add color space to the run arguments ?
+	uint8_t cSpace = 3;
 
 
-	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2Lab);
-//	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2YCrCb);
-//	cvtColor(imThreshLAB, imThreshLAB, CV_RGB2HSV);
 
-	// 
-	Vec3b * modPixel;
-	for ( int i = 0; i < imThreshLAB.rows; i++ ) {
-		for ( int j = 0; j < imThreshLAB.cols; j++ ) {
+	//////////////// //////////////// ////////////////
+	// Apply segmentation through basic thresholding
+	Mat imThresh = segThresh(& imOrig, cSpace);
 
-			modPixel = & imThreshLAB.at<Vec3b>(i, j);
-
-			for ( int c = 0; c < imThreshLAB.channels(); c++ ) {
-				if (modPixel->val[c] <= 128) {
-					modPixel->val[c] = 64;
-				} else {
-					modPixel->val[c] = 192;
-				}
-			}
-		}
-	}
-	cvtColor(imThreshLAB, imThreshLAB, CV_Lab2RGB);
-//	cvtColor(imThreshLAB, imThreshLAB, CV_YCrCb2RGB);
-//	cvtColor(imThreshLAB, imThreshLAB, CV_HSV2RGB);
 	namedWindow("Threshold Image", WINDOW_AUTOSIZE);
-	imshow("Threshold Image", imThreshLAB);
+	imshow("Threshold Image", imThresh);
 	waitKey(0);
-*/
+
 
 
 
