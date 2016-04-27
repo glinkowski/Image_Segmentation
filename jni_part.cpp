@@ -430,5 +430,65 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_HistEQ(JNIEnv* env, jobj
 
 }
 
+JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segThresh(JNIEnv*, jobject, jlong addrYuv, jlong addrRgba)
+//JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_KMeans(JNIEnv*, jobject, jlong addrYuv, jlong addrRgba)
+{
 
+	// Input & Output images
+	Mat * imYUV = (Mat *) addrYuv;
+	Mat * imThresh = (Mat *) addrRgba;
+
+
+	// get dimensions
+	uint32_t height = imYUV->rows * 2/3;
+	uint32_t width = imYUV->cols;
+	uint32_t size = height * width;
+
+
+	uint8_t Y, U, V;
+	uint8_t Ynew, Unew, Vnew;
+	uint32_t block_x, block_y;
+
+
+	// For each pixel, find closest k
+	for (int x = 0; x < width; x++){
+		for (int y = 0; y < height; y++){
+
+			// Get the pixel value
+			block_x = x/2;
+			block_y = y/2;
+			Y = imYUV->at<uint8_t>(y,x);
+			uint32_t Upos = size + block_y*width+block_x*2;
+			U = imYUV->at<uint8_t>( (Upos / width), (Upos % width) );
+			uint32_t Vpos = size + block_y*width+block_x*2 + 1;
+			V = imYUV->at<uint8_t>( (Vpos / width), (Vpos % width) );
+
+			// Threshold it
+			if (Y <= 128) {
+				Ynew = 64;
+			} else {
+				Ynew = 196;
+			}
+			if (U <= 128) {
+				Unew = 64;
+			} else {
+				Unew = 196;
+			}
+			if (V <= 128) {
+				Vnew = 64;
+			} else {
+				Vnew = 196;
+			}
+
+//TODO: paint with average pixel value
+
+			// Convert & place it
+			imThresh->at<int32_t>(y,x) = convertYUVtoARGB(Ynew, Unew, Vnew);
+
+		} // // // done with this pixel
+	}
+} // // // End of thresholding function
+
+
+// End of C encapsulation
 }
