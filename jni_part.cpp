@@ -145,11 +145,11 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_YUV2RGB(JNIEnv*, jobject
 //  k-means Image Segmentation
 JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobject, jlong addrYuv, jlong addrRgba) {
   // 
-//  Mat imKMeans = imOrig.clone();
-//  cvtColor(imKMeans, imKMeans, CV_RGB2Lab);
+  //  Mat imKMeans = imOrig.clone();
+  //  cvtColor(imKMeans, imKMeans, CV_RGB2Lab);
 
-//  Mat imKMeans 
-  //      pRGB->at<int32_t>(y,x) = convertYUVtoARGB(Y, U, V);
+  //  Mat imKMeans 
+    //      pRGB->at<int32_t>(y,x) = convertYUVtoARGB(Y, U, V);
 
   // Input & Output images
   Mat * imYUV = (Mat *) addrYuv;
@@ -177,8 +177,8 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
   pixLabels = Mat::zeros(imKMeans->rows, imKMeans->cols, CV_8UC1);
 
   // get dimensions
-//  int height = imKMeans.rows;
-//  int width = imKMeans.cols;
+  //  int height = imKMeans.rows;
+  //  int width = imKMeans.cols;
   int height = imYUV->rows * 2/3;
   int width = imYUV->cols;
   int size = height * width;
@@ -188,8 +188,7 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
     centroids[i] = rand() % 255;
   }
   
-// TODO : access as pointer, not .at
-// http://stackoverflow.com/questions/1844736/accesing-a-matrix-element-in-the-mat-object-not-the-cvmat-object-in-opencv-c
+  // TODO : access as pointer, not .at
 
   // Variables for finding the k-means
   uint8_t error = stopError + 1;
@@ -199,7 +198,7 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
   float distToBeat, newDist;
   float xScale, yScale;
   uint8_t xNew, yNew;
-//  Vec3b * getPixel;
+  //  Vec3b * getPixel;
   uint8_t Y, U, V;
   int block_x, block_y;
 
@@ -222,7 +221,7 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
     for (int x = 0; x < width; x++){
       for (int y = 0; y < height; y++){
 
-//        getPixel = & imKMeans->at<Vec3b>(y, x);
+  //        getPixel = & imKMeans->at<Vec3b>(y, x);
         block_x = x/2;
         block_y = y/2;
         Y = pYUV->at<uint8_t>(y,x);
@@ -242,18 +241,18 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
           newDist += (Y - centroids[idx]) * (Y - centroids[idx]);
           newDist += (U - centroids[idx+1]) * (U - centroids[idx+1]);
           newDist += (V - centroids[idx+2]) * (V - centroids[idx+2]);
-//          for (uint8_t j = 0; j < 3; j ++) {
-//            idx = j + (i * dimensions);
-//            newDist += (getPixel->val[j] - centroids[idx]) *
-//              (getPixel->val[j] - centroids[idx]);
-//          }
+  //          for (uint8_t j = 0; j < 3; j ++) {
+  //            idx = j + (i * dimensions);
+  //            newDist += (getPixel->val[j] - centroids[idx]) *
+  //              (getPixel->val[j] - centroids[idx]);
+  //          }
           if (dimensions == 5) {
             xNew = x * xScale;
             yNew = y * yScale;
-//            newDist += (xNew - centroids[idx + 1]) *
-//              (xNew - centroids[idx + 1]);
-//            newDist += (yNew - centroids[idx + 2]) *
-//              (yNew - centroids[idx + 2]);
+  //            newDist += (xNew - centroids[idx + 1]) *
+  //              (xNew - centroids[idx + 1]);
+  //            newDist += (yNew - centroids[idx + 2]) *
+  //              (yNew - centroids[idx + 2]);
             newDist += (xNew - centroids[idx + 3]) *
               (xNew - centroids[idx + 3]);
             newDist += (yNew - centroids[idx + 4]) *
@@ -274,15 +273,15 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
         centSum[idx] += Y;
         centSum[idx+1] += U;
         centSum[idx+2] += V;
-//        for (uint8_t j = 0; j < 3; j++) {
-//          idx = j + (label * dimensions);
-//          centSum[idx] += getPixel->val[j];
-//        }
+  //        for (uint8_t j = 0; j < 3; j++) {
+  //          idx = j + (label * dimensions);
+  //          centSum[idx] += getPixel->val[j];
+  //        }
         if (dimensions == 5) {
-//          xNew = x * xScale;
-//          centSum[idx + 1] = xNew;
-//          yNew = y * yScale;
-//          centSum[idx + 2] = yNew;
+  //          xNew = x * xScale;
+  //          centSum[idx + 1] = xNew;
+  //          yNew = y * yScale;
+  //          centSum[idx + 2] = yNew;
           xNew = x * xScale;
           centSum[idx + 3] = xNew;
           yNew = y * yScale;
@@ -338,18 +337,18 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
       V = centroids[idx+2];
       imKMeans->at<int32_t>(y,x) = convertYUVtoARGB(Y, U, V);
 
-//      placePixel = & imKMeans->at<Vec3b>(y, x);
+  //      placePixel = & imKMeans->at<Vec3b>(y, x);
 
-//      for (int j = 0; j < 3; j++) {
-//        idx = j + (thisLabel * dimensions);
-//        placePixel->val[j] = centroids[idx];
-//      }
+  //      for (int j = 0; j < 3; j++) {
+  //        idx = j + (thisLabel * dimensions);
+  //        placePixel->val[j] = centroids[idx];
+  //      }
       // done with this pixel
 
     }
   }
 
-//  cvtColor(imKMeans, imKMeans, CV_Lab2RGB);
+  //  cvtColor(imKMeans, imKMeans, CV_Lab2RGB);
 
   // free stuff
   free (centroids);
@@ -360,8 +359,154 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
 
 
 
+//TODO: pass centroids from java
+// //////////////// //////////////// ////////////////
+//  k-means Image Segmentation
+JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, jobject, jlong addrYuv, jlong addrRgba, jlong adCentroids) {
+
+  // Input & Output images
+  Mat * imYUV = (Mat *) addrYuv;
+  Mat * imKMeans = (Mat *) addrRgba;
+
+  // Parameters
+  uint8_t K = 3;
+  uint8_t dimensions = 3; // either 3 or 5
+  uint8_t stopError = 10;
+  uint8_t stopCount = 5;
 
 
+  uint8_t idx;      // for stepping through centroids
+
+
+  // Declare centroid calculation helpers
+  float * centSum, * centCount;
+  centSum = (float *) calloc( K * 3, sizeof(float) );
+  centCount = (float *) calloc( K, sizeof(float) );
+
+  // array to hold pixel labels
+  Mat pixLabels;
+  pixLabels = Mat::zeros(imKMeans->rows, imKMeans->cols, CV_8UC1);
+
+  // get image dimensions
+  int height = imYUV->rows * 2/3;
+  int width = imYUV->cols;
+  int size = height * width;
+
+  
+// TODO : access as pointer, not .at
+// http://stackoverflow.com/questions/1844736/accesing-a-matrix-element-in-the-mat-object-not-the-cvmat-object-in-opencv-c
+
+  // Variables for finding the k-means
+  uint8_t label = 0;
+  float distToBeat, newDist;
+  float xScale = 255 / width;
+  float yScale = 255 / height;
+  float xScale, yScale;
+  uint8_t xNew, yNew;
+  uint8_t Y, U, V;
+  int block_x, block_y;
+  int Upos, Vpos;
+
+
+  // Find the k-means ////////
+
+  // For each pixel, find closest k
+  for (int x = 0; x < width; x++){
+    for (int y = 0; y < height; y++){
+
+      block_x = x/2;
+      block_y = y/2;
+
+      Y = pYUV->at<uint8_t>(y,x);
+
+      Upos = size + block_y*width+block_x*2;
+ //     U = pYUV->at<uint8_t>( (Upos / width), (Upos % width) );
+      U = Upos + (Upos % width);
+
+      Vpos = size + block_y*width+block_x*2 + 1;
+  //    V = pYUV->at<uint8_t>( (Vpos / width), (Vpos % width) );
+      V = Vpos + (Vpos % width);
+
+      // measure (squared) dist to first centroid
+      distToBeat = 16581375;
+
+//CONTINUE HERE ----
+
+      // Determine which centroid is closest to this pixel
+      for (uint8_t i = 0; i < K; i++) {
+        // calculate the squared dist
+        newDist = 0;
+        idx = i * dimensions;
+        newDist += (Y - adCentroids[idx]) * (Y - adCentroids[idx]);
+        newDist += (U - adCentroids[idx+1]) * (U - adCentroids[idx+1]);
+        newDist += (V - adCentroids[idx+2]) * (V - adCentroids[idx+2]);
+        if (dimensions == 5) {
+          xNew = x * xScale;
+          yNew = y * yScale;
+          newDist += (xNew - adCentroids[idx + 3]) *
+            (xNew - adCentroids[idx + 3]);
+          newDist += (yNew - adCentroids[idx + 4]) *
+            (yNew - adCentroids[idx + 4]);
+        }
+        // test this dist against winner
+        // save the label of the winning centroid
+        if (newDist < distToBeat) {
+          distToBeat = newDist;
+          pixLabels.at<uint8_t>(y, x) = i;
+        }
+      } // // // found appropriate centroid
+
+      // Update the centroid values (1: sum of all members)
+      label = pixLabels.at<uint8_t>(y, x);
+
+      idx = label * dimensions;
+      centSum[idx] += Y;
+      centSum[idx+1] += U;
+      centSum[idx+2] += V;
+      if (dimensions == 5) {
+        xNew = x * xScale;
+        centSum[idx + 3] = xNew;
+        yNew = y * yScale;
+        centSum[idx + 4] = yNew;
+      }
+      centCount[label] += 1;
+
+    } // // // done with this pixel
+  } // // // done reading from camera
+
+  // TODO: combine these loops ...
+
+  // Update centroid values
+  for (uint8_t i = 0; i < K; i++) {
+    for (uint8_t j = 0; j < dimensions; j++) {
+      idx = j + (i * dimensions);
+      adCentroids[idx] = (uint8_t) (centSum[idx] / centCount[i]);
+    }
+  }
+  // Done with the K centroids for this round
+
+  
+  // Fnally: Place the new pixel value into the image
+  uint8_t thisLabel;
+  for (int x = 0; x < width; x++){
+    for (int y = 0; y < height; y++){
+
+      // Read the label for this pixel
+      thisLabel = pixLabels.at<uint8_t>(y, x);
+
+      // Place the new value
+      Y = adCentroids[idx];
+      U = adCentroids[idx+1];
+      V = adCentroids[idx+2];
+      imKMeans->at<int32_t>(y,x) = convertYUVtoARGB(Y, U, V);
+    }
+  }
+
+
+  // free stuff
+  free (centSum);
+  free (centCount);
+}
 
 
 
