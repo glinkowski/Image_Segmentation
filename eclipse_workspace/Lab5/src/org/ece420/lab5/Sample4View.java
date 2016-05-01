@@ -5,6 +5,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 //import org.opencv.imgproc.Imgproc;
 
+import java.util.Random;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -43,11 +44,12 @@ class Sample4View extends SampleViewBase {
 
         mBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
 
+        Random rand;
         int k = 10;
         int d = 5;
         mCentroids = new int[k * d];
         for(int i = 0; i < (k * d); i++) {
-            mCentroids[i] = 0;
+            mCentroids[i] = rand.nextInt(256);
         }
 
     }
