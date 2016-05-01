@@ -12,15 +12,19 @@ import android.util.Log;
 class Sample4View extends SampleViewBase {
     private static final String TAG = "OCVSample::View";
 
-    public static final int     VIEW_MODE_GRAY     = 0;
-    public static final int     VIEW_MODE_RGBA     = 1;
-    public static final int     VIEW_MODE_HISTEQ   = 2;
+    public static final int     SEGMENT_THRESHOLD   = 0;
+    public static final int     SEGMENT_KMEAN_SLOW  = 1;
+    public static final int     SEGMENT_KMEAN_FAST  = 2;
+    public static final int     VIEW_MODE_GRAY      = 3;
+    public static final int     VIEW_MODE_RGBA      = 4;
+    public static final int     VIEW_MODE_HISTEQ    = 5;
 
     private Mat                 mYuv;
     private Mat                 mRgba;
     private Mat                 mGraySubmat;
     private Bitmap              mBitmap;
     private int                 mViewMode;
+    private int                 mCentroids;
 
     public Sample4View(Context context) {
         super(context);
@@ -38,6 +42,14 @@ class Sample4View extends SampleViewBase {
         mRgba = new Mat(getFrameHeight(), getFrameWidth(), CvType.CV_8UC4);
 
         mBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
+
+        int k = 10;
+        int d = 5;
+        mCentroids = new int[k * d];
+        for(int i = 0; i < (k * d); i++) {
+            mCentroids[i] = 0;
+        }
+
     }
 
     @Override
@@ -48,9 +60,13 @@ class Sample4View extends SampleViewBase {
             mBitmap.recycle();
             mBitmap = null;
         }
+        if(mCentroids != null){
+            mCentroids.release();
+            mCentroids = null;
+        }
 
         synchronized (this) {
-            // Explicitly deallocate Mats
+            // Explicitly deallocate Mats & such
             if (mYuv != null)
                 mYuv.release();
             if (mRgba != null)
@@ -62,7 +78,6 @@ class Sample4View extends SampleViewBase {
             mRgba = null;
             mGraySubmat = null;
         }
-
     }
 
 
@@ -74,20 +89,28 @@ class Sample4View extends SampleViewBase {
         final int viewMode = mViewMode;
 
         switch (viewMode) {
+        case SEGMENT_THRESHOLD:
+            segThresh(mYuv.getNativeObjAddr(), mRgba.getNativeObjAddr());
+            break;
+        case SEGMENT_KMEAN_SLOW:
+            segKMeans(mYuv.getNativeObjAddr(),mRgba.getNativeObjAddr());
+            break;
+        case SEGMENT_KMEAN_FAST:
+            segKMeansLive(mYuv.getNativeObjAddr(), mRgba.getNativeObjAddr(), mCentroids.getNativeObjAddr());
+            break;
         case VIEW_MODE_GRAY:
         	// opencv's color conversion function
-//            Imgproc.cvtColor(mGraySubmat, mRgba, Imgproc.COLOR_GRAY2RGBA, 4);
-        	segThresh(mYuv.getNativeObjAddr(),mRgba.getNativeObjAddr());
-            break;
+            Imgproc.cvtColor(mGraySubmat, mRgba, Imgproc.COLOR_GRAY2RGBA, 4);
+           break;
         case VIEW_MODE_RGBA:
-//            Imgproc.cvtColor(mYuv, mRgba, Imgproc.COLOR_YUV420sp2RGB, 4);
-        	// implement the color conversion manually
+            // opencv's color converstion function
+            //Imgproc.cvtColor(mYuv, mRgba, Imgproc.COLOR_YUV420sp2RGB, 4);
+        	// manual implementation
         	YUV2RGB(mYuv.getNativeObjAddr(),mRgba.getNativeObjAddr());
             break;
         case VIEW_MODE_HISTEQ:
         	// apply equalization to Y channel and convert to RGB
-//            HistEQ(mYuv.getNativeObjAddr(), mRgba.getNativeObjAddr());
-        	segKMeans(mYuv.getNativeObjAddr(),mRgba.getNativeObjAddr());
+            HistEQ(mYuv.getNativeObjAddr(), mRgba.getNativeObjAddr());
             break;
         }
 
@@ -104,6 +127,7 @@ class Sample4View extends SampleViewBase {
         return bmp;
     }
 
+    public native void segKMeansLive(long matAddrYUV, long matAddrRgba, long addrCentroids);
     public native void segKMeans(long matAddrYUV, long matAddrRgba);
     public native void segThresh(long matAddrYUV, long matAddrRgba);
     public native void YUV2RGB(long matAddrYUV, long matAddrRgba);
