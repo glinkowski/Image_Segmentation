@@ -359,7 +359,6 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
 
 
 
-//TODO: pass centroids from java
 // //////////////// //////////////// ////////////////
 //  Live K-means Image Segmentation
 //    centroids calculated once each frame
@@ -394,9 +393,6 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
   int width = imYUV->cols;
   int size = height * width;
 
-  
-// TODO : access as pointer, not .at
-// http://stackoverflow.com/questions/1844736/accesing-a-matrix-element-in-the-mat-object-not-the-cvmat-object-in-opencv-c
 
   // Variables for finding the k-means
   uint8_t label = 0;
