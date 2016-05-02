@@ -3,7 +3,7 @@ package org.ece420.lab5;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-//import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.Random;
 import android.content.Context;
@@ -25,7 +25,7 @@ class Sample4View extends SampleViewBase {
     private Mat                 mGraySubmat;
     private Bitmap              mBitmap;
     private int                 mViewMode;
-    private int                 mCentroids;
+    private int[]               mCentroids;
 
     public Sample4View(Context context) {
         super(context);
@@ -44,12 +44,19 @@ class Sample4View extends SampleViewBase {
 
         mBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
 
-        Random rand;
+        Random randGen = new Random();
         int k = 10;
         int d = 5;
+        int temp;
+    	temp = randGen.nextInt(256);
         mCentroids = new int[k * d];
         for(int i = 0; i < (k * d); i++) {
-            mCentroids[i] = rand.nextInt(256);
+        	temp += 37;
+        	if (temp > 255) {
+        		temp = temp - 255;
+        	}
+            mCentroids[i] = temp;
+        //    mCentroids[i] = randGen.nextInt(256);
         }
 
     }
@@ -63,7 +70,7 @@ class Sample4View extends SampleViewBase {
             mBitmap = null;
         }
         if(mCentroids != null){
-            mCentroids.release();
+//            mCentroids.release();
             mCentroids = null;
         }
 
@@ -98,7 +105,7 @@ class Sample4View extends SampleViewBase {
             segKMeans(mYuv.getNativeObjAddr(),mRgba.getNativeObjAddr());
             break;
         case SEGMENT_KMEAN_FAST:
-            segKMeansLive(mYuv.getNativeObjAddr(), mRgba.getNativeObjAddr(), mCentroids.getNativeObjAddr());
+            segKMeansLive(mYuv.getNativeObjAddr(), mRgba.getNativeObjAddr(), mCentroids);
             break;
         case VIEW_MODE_GRAY:
         	// opencv's color conversion function
@@ -129,7 +136,7 @@ class Sample4View extends SampleViewBase {
         return bmp;
     }
 
-    public native void segKMeansLive(long matAddrYUV, long matAddrRgba, long addrCentroids);
+    public native void segKMeansLive(long matAddrYUV, long matAddrRgba, int[] addrCentroids);
     public native void segKMeans(long matAddrYUV, long matAddrRgba);
     public native void segThresh(long matAddrYUV, long matAddrRgba);
     public native void YUV2RGB(long matAddrYUV, long matAddrRgba);
