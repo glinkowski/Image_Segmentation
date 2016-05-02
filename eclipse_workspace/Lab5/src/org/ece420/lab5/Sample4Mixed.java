@@ -17,6 +17,9 @@ import android.view.WindowManager;
 public class Sample4Mixed extends Activity {
     private static final String TAG = "OCVSample::Activity";
 
+    private MenuItem            mItemSegThresh;
+    private MenuItem            mItemSlowKMeans;
+    private MenuItem            mItemFastKMeans;
     private MenuItem            mItemPreviewRGBA;
     private MenuItem            mItemPreviewGray;
     private MenuItem            mItemPreviewHistEq;
@@ -110,16 +113,25 @@ public class Sample4Mixed extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.i(TAG, "called onCreateOptionsMenu");
-        mItemPreviewGray = menu.add("apply Thresholding");
-        mItemPreviewRGBA = menu.add("Regular RGB");
-        mItemPreviewHistEq = menu.add("apply K-Means");
+        mItemSegThresh = menu.add("Thresholding");
+        mItemSlowKMeans = menu.add("regular K-Means");
+        mItemFastKMeans = menu.add("live K-Means");
+        mItemPreviewGray = menu.add("plain GreyScale");
+        mItemPreviewRGBA = menu.add("plain RGB");
+        mItemPreviewHistEq = menu.add("with HistEQ");
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
-        if (item == mItemPreviewRGBA) {
+        if (item == mItemSegThresh) {
+            mView.setViewMode(Sample4View.SEGMENT_THRESHOLD);
+        } else if (item == mItemSlowKMeans) {
+            mView.setViewMode(Sample4View.SEGMENT_KMEAN_SLOW);
+        } else if (item == mItemFastKMeans) {
+            mView.setViewMode(Sample4View.SEGMENT_KMEAN_FAST);
+        } else if (item == mItemPreviewRGBA) {
             mView.setViewMode(Sample4View.VIEW_MODE_RGBA);
         } else if (item == mItemPreviewGray) {
             mView.setViewMode(Sample4View.VIEW_MODE_GRAY);
