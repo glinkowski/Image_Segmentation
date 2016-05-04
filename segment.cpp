@@ -72,11 +72,12 @@ int main(int argc, char** argv)
 
 	Mat imKMeans = imOrig.clone();
 	cvtColor(imKMeans, imKMeans, CV_RGB2Lab);
+//	cvtColor(imKMeans, imKMeans, CV_RGB2YCrCb);
 
-	uint8_t K = 8;
+	uint8_t K = 7;
 	uint8_t dimensions = 3;	// either 3 or 5
 	uint8_t stopError = 5;
-	uint8_t stopCount = 11;
+	uint8_t stopCount = 25;
 
 	// Create the array to hold K centroids
 //	uint8_t cLen = K * dimensions;
@@ -99,7 +100,7 @@ int main(int argc, char** argv)
 //	centColor = (char *) malloc( K * 3 * sizeof(char) );
 	float * centSum;
 //	centSum = (float *) calloc( K * dimensions * sizeof(float) );
-	centSum = (float *) calloc( K * 3, sizeof(float) );
+	centSum = (float *) calloc( K * dimensions, sizeof(float) );
 	float * centCount;
 	centCount = (float *) calloc( K, sizeof(float) );
 //	float * centDist;
@@ -118,27 +119,7 @@ int main(int argc, char** argv)
 	int height = imKMeans.rows;
 	int width = imKMeans.cols;
 
-	// Select K random centroids
-	uint8_t idx;
-	for (uint8_t i = 0; i < K; i++) {
-		for (uint8_t j = 0; j < dimensions; j++) {
 
-			idx = (i * dimensions) + j;
-			centroids[idx] = rand() % 255;
-//			printf("%d\n", (uint8_t)centroids[idx]);
-
-		}
-	}
-
-// REMOVE: print the centroids
-	for (uint8_t i = 0; i < K; i++) {
-		printf("centroid %d: ", i);
-		for (uint8_t j = 0; j < dimensions; j++) {
-			idx = j + (i * dimensions);
-			printf(" %d ", centroids[idx]);
-		}
-		printf("\n");
-	}
 
 
 // TODO : access as pointer, not .at
@@ -156,8 +137,57 @@ int main(int argc, char** argv)
 	Vec3b * getPixel;
 //	int tempX, tempY;
 
-	xScale = 255 / width;
-	yScale = 255 / height;
+	xScale = 255.0 / width;
+	yScale = 255.0 / height;
+	printf("%d, %d\n", width, height);
+	printf("%f, %f\n", xScale, yScale);
+
+/*	// Select K random centroids
+	uint8_t idx;
+	for (uint8_t i = 0; i < K; i++) {
+		for (uint8_t j = 0; j < dimensions; j++) {
+
+			idx = (i * dimensions) + j;
+			centroids[idx] = rand() % 255;
+//			printf("%d\n", (uint8_t)centroids[idx]);
+
+		}
+	}
+*/	
+
+	// Select K random centroids
+	uint8_t idx;
+	int xTemp, yTemp;
+	for (uint8_t i = 0; i < K; i++) {
+		// xNew = rand() % 255;
+		// yNew = rand() % 255;
+		// getPixel = & imKMeans.at<Vec3b>((int) yNew/yScale, (int) xNew/xScale);
+
+		xTemp = rand() % width;
+		yTemp = rand() % height;
+		getPixel = & imKMeans.at<Vec3b>(yTemp, xTemp);
+		for (uint8_t j = 0; j < 3; j++) {
+			idx = (i * dimensions) + j;
+			centroids[idx] = getPixel->val[j];
+		}
+		if (dimensions == 5) {
+			xNew = xTemp * xScale;
+			printf("%d\n", xNew);
+			centroids[idx+1] = (uint8_t) (xTemp * xScale);
+			centroids[idx+2] = (uint8_t) ((float) yTemp * yScale);
+		}
+
+	}
+
+// REMOVE: print the centroids
+	for (uint8_t i = 0; i < K; i++) {
+		printf("centroid %d: ", i);
+		for (uint8_t j = 0; j < dimensions; j++) {
+			idx = j + (i * dimensions);
+			printf(" %d ", centroids[idx]);
+		}
+		printf("\n");
+	}
 
 	while ((error > stopError) & (runs < stopCount)) {
 		printf("Run: %d\n", runs);
@@ -220,11 +250,13 @@ int main(int argc, char** argv)
 				}
 				if (dimensions == 5) {
 					xNew = x * xScale;
-					centSum[idx + 1] = xNew;
+					centSum[idx + 1] += xNew;
 					yNew = y * yScale;
-					centSum[idx + 2] = yNew;
+					centSum[idx + 2] += yNew;
 				}
 				centCount[label] += 1;
+			//TODO: if centroid is all zeros, choose new one ?
+				// ?? Why do they zero out ??
 
 		// 	/*	if (dimensions == 5) {
 		// 			// TODO: normalize x/y over 255?
@@ -237,7 +269,7 @@ int main(int argc, char** argv)
 		}
 		runs++;
 
-		// REMOVE: print the centroids
+		/*// REMOVE: print the centroids
 		for (uint8_t i = 0; i < K; i++) {
 			printf("centroid %d: ", i);
 			for (uint8_t j = 0; j < dimensions; j++) {
@@ -246,7 +278,7 @@ int main(int argc, char** argv)
 			}
 			printf("\n");
 		}
-
+*/
 		// TODO: combine these loops ...
 
 		// Update centroid values
@@ -360,17 +392,31 @@ int main(int argc, char** argv)
 	printf("Painted the output image\n");
 
 	cvtColor(imKMeans, imKMeans, CV_Lab2RGB);
+//	cvtColor(imKMeans, imKMeans, CV_YCrCb2RGB);
 
 	namedWindow("KMeans Image", WINDOW_AUTOSIZE);
 	imshow("KMeans Image", imKMeans);
 	waitKey(0);
 
 
+//	printf("Painted the output image\n");
 //TODO: free stuff
 	free (centroids);
 	free (centPrev);
 	free (centSum);
 	free (centCount);
+//	printf("Painted the output image\n");
+
+
+
+//	try {
+		imwrite("imThresh.png", imThresh);
+		imwrite("imKMeans.png", imKMeans);
+//	}
+//	catch (runtime_error& err) {
+//		fprintf(stderr, "Exception converting image to PNG format: %s\n", err.what());
+//		return 1;
+//	}
 
 
 
