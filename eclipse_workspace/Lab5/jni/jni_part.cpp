@@ -203,8 +203,8 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
   int block_x, block_y;
   int Upos, Vpos;
 
-  xScale = 255 / width;
-  yScale = 255 / height;
+  xScale = 255.0 / width;
+  yScale = 255.0 / height;
 
   // Find the k-means
   while ((error > stopError) & (runs < stopCount)) {
@@ -294,9 +294,9 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
   //          yNew = y * yScale;
   //          centSum[idx + 2] = yNew;
           xNew = x * xScale;
-          centSum[idx + 3] = xNew;
+          centSum[idx + 3] += xNew;
           yNew = y * yScale;
-          centSum[idx + 4] = yNew;
+          centSum[idx + 4] += yNew;
         }
         centCount[label] += 1;
 
@@ -390,7 +390,7 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
 
   // Parameters
   uint8_t K = 7;
-  uint8_t dimensions = 3; // either 3 or 5
+  uint8_t dimensions = 5; // either 3 or 5
   //uint8_t stopError = 10;
   //uint8_t stopCount = 5;
 
@@ -417,8 +417,8 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
   // Variables for finding the k-means
   uint8_t label = 0;
   float distToBeat, newDist;
-  float xScale = 255 / width;
-  float yScale = 255 / height;
+  float xScale = 255.0 / width;
+  float yScale = 255.0 / height;
   uint8_t xNew, yNew;
   uint8_t Y, U, V;
   int block_x, block_y;
@@ -484,9 +484,9 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
       centSum[idx+2] += V;
       if (dimensions == 5) {
         xNew = x * xScale;
-        centSum[idx + 3] = xNew;
+        centSum[idx + 3] += xNew;
         yNew = y * yScale;
-        centSum[idx + 4] = yNew;
+        centSum[idx + 4] += yNew;
       }
       centCount[label] += 1;
 
