@@ -428,8 +428,8 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
   // Find the k-means ////////
 
   // For each pixel, find closest k
-  for (int x = 0; x < width; x++){
-    for (int y = 0; y < height; y++){
+  for (int x = 0; x < width; x = x+2){
+    for (int y = 0; y < height; y = y+2){
 
       // Get the original pixel color
       block_x = x/2;
@@ -506,8 +506,8 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
 
   // Fnally: Place the new pixel value into the image
   uint8_t thisLabel;
-  for (int x = 0; x < width; x++){
-    for (int y = 0; y < height; y++){
+  for (int x = 0; x < width; x = x+2){
+    for (int y = 0; y < height; y = y+2){
 
       // Read the label for this pixel
   //    thisLabel = pixLabels.at<uint8_t>(y, x);
@@ -529,6 +529,9 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
 
 
       imKMeans->at<int32_t>(y,x) = convertYUVtoARGB((int) Y, (int) U, (int) V);
+      imKMeans->at<int32_t>(y,x+1) = convertYUVtoARGB((int) Y, (int) U, (int) V);
+      imKMeans->at<int32_t>(y+1,x) = convertYUVtoARGB((int) Y, (int) U, (int) V);
+      imKMeans->at<int32_t>(y+1,x+1) = convertYUVtoARGB((int) Y, (int) U, (int) V);
     //  imKMeans[(y * width) + x] = convertYUVtoARGB((int) Y, (int) U, (int) V);
 //TODO: should I just make Y,U,V int from the start ?
     }
