@@ -307,11 +307,16 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeans(JNIEnv*, jobje
 
     // TODO: combine these loops ...
 
-    // Update centroid values
+    // Update centroid values (2: find the average)
     for (uint8_t i = 0; i < K; i++) {
       for (uint8_t j = 0; j < dimensions; j++) {
         idx = j + (i * dimensions);
-        centroids[idx] = (uint8_t) (centSum[idx] / centCount[i]);
+        // If centroid has ~0 matches, select new centroid
+        if (centCount[i] > 3) {
+          centroids[idx] = (uint8_t) (centSum[idx] / centCount[i]);
+        } else {
+          centroids[idx] = rand() % 255;
+        }
       }
     }
 
@@ -389,7 +394,7 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
   uint8_t * centroids = (uint8_t *) addrCentroids;
 
   // Parameters
-  uint8_t K = 7;
+  uint8_t K = 8;
   uint8_t dimensions = 5; // either 3 or 5
   //uint8_t stopError = 10;
   //uint8_t stopCount = 5;
@@ -494,11 +499,18 @@ JNIEXPORT void JNICALL Java_org_ece420_lab5_Sample4View_segKMeansLive(JNIEnv*, j
   } // // // done reading from camera
 
 
-  // Update centroid values
+  // Update centroid values (2: find the average)
   for (uint8_t i = 0; i < K; i++) {
+//    idx = i * dimensions;
     for (uint8_t j = 0; j < dimensions; j++) {
       idx = j + (i * dimensions);
-      centroids[idx] = (uint8_t) (centSum[idx] / centCount[i]);
+      // If centroid has ~0 matches, select new centroid
+      if (centCount[i] > 3) {
+        centroids[idx] = (uint8_t) (centSum[idx] / centCount[i]);
+      } else {
+        centroids[idx] = rand() % 255;
+      }
+//      idx++;
     }
   }
   // Done with the K centroids for this round
